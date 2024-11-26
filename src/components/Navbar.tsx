@@ -12,7 +12,7 @@ export function Navbar() {
         variant="ghost"
         size="icon"
         onClick={() => {
-         window.open("https://github.com/skushagra9/Solana-Breeze", "_blank")
+         window.open("https://github.com/skushagra9/nft-mobile-app", "_blank")
         }}
       >
         <GitHubLogoIcon></GitHubLogoIcon>

@@ -9,6 +9,7 @@ import { API } from "../utils/schema";
 import axiosClient from "../apiClient";
 import NFTCard from "../components/NFTCard";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { addNFTToMetaMask } from "../utils/nftMetamask";
 import { useAccount } from "wagmi";
 type NFT = {
   name: string;
@@ -22,6 +23,7 @@ export default function Home() {
   const { toast } = useToast();
   const [email, setEmail] = useState<string>('');
   const [success, setSuccess] = useState<boolean>(false);
+  const [success2, setSuccess2] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [nfts, setNfts] = useState<NFT | null>();
   const [showAllNFTs, setShowAllNFTs] = useState(false);
@@ -40,20 +42,20 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error fetching NFTs:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch NFTs. Please try again.",
-      });
+      // toast({
+      //   title: "Error",
+      //   description: "Failed to fetch NFTs. Please try again.",
+      // });
     }
   };
 
   // Handle MetaMask account connection
-  const {address, isConnected} = useAccount(); 
+  const { address, isConnected } = useAccount();
 
   // Handle login and verification
   const handleLogin = async () => {
     try {
-      setSuccess(false);
+      setSuccess2(false);
       setNfts(null);
       setLoading1(true);
       const response = await axios.post(`${API}/user/check-user`, { email });
@@ -80,6 +82,7 @@ export default function Home() {
 
   // Mint an NFT after login
   const handleSubmit = async () => {
+    setSuccess2(false);
     if (!address) {
       toast({
         title: "Error",
@@ -102,6 +105,7 @@ export default function Home() {
       console.error("Error processing address:", error);
     } finally {
       setLoading(false);
+      setSuccess2(true);
     }
   };
 
@@ -112,10 +116,10 @@ export default function Home() {
 
   useEffect(() => {
     fetchNFTs();
-  }, [success])
+  }, [success, success2])
 
   useEffect(() => {
-    if (!address){
+    if (!address) {
       setSuccess(false);
     }
   }, [address])
@@ -126,8 +130,8 @@ export default function Home() {
       {/* {nfts.length > 0 && !showAllNFTs && (
         <div className="w-full max-w-full p-4 mb-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold mb-4">Your NFT</h2> */}
-          {isConnected && success && <Button variant="secondary" onClick={fetchNFTs}>Show NFT</Button>}
-        {/* </div> */}
+      {/* {isConnected && success && <Button variant="secondary" onClick={fetchNFTs}>Show NFT</Button>} */}
+      {/* </div> */}
       {/* )} */}
 
       {/* Show all NFTs */}
@@ -135,21 +139,28 @@ export default function Home() {
         <NFTCard nft={{ name: nfts.name, imageURI: nfts.imageURI, tokenID: nfts.tokenID }} />
       )}
 
+      {/* {nfts && (
+        <Button className="font-bold" variant="default" onClick={() => addNFTToMetaMask(nfts.tokenID)}>
+          {loading ? <ReloadIcon className="h-6 w-6 animate-spin mr-2" /> : "Add to Metamask"}
+        </Button>
+      )} */}
+
       {/* Title */}
       <span className="font-heading font-bold text-4xl md:text-7xl text-center">
-        100xdevs NFT Airdrop
+        NFT Airdrop
       </span>
+      <span>Contract Address: {process.env.NEXT_PUBLIC_CONTRACT_ADDRESS}</span>
 
       {/* Email Input and MetaMask Button */}
       <div className="flex flex-col items-center justify-center w-full max-w-full p-4 space-y-4">
-      {isConnected &&  <Input
+        {isConnected && <Input
           className="w-full lg:w-1/3 border-4 border-indigo-light shadow-sm placeholder:text-muted-foreground rounded-xl mb-4 focus-visible:outline-none"
           value={email}
           placeholder="Enter your Email Address"
           onChange={(e) => setEmail(e.target.value)}
         />}
         {!isConnected ? (
-          <ConnectButton/>
+          <ConnectButton />
         ) : (
           <Button className="font-bold" variant="default" onClick={handleLogin}>
             {loading1 ? <ReloadIcon className="h-6 w-6 animate-spin mr-2" /> : "Verify"}
